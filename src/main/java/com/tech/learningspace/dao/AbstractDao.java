@@ -13,6 +13,7 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.KeyHolder;
+import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Type;
@@ -21,7 +22,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
 import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
@@ -31,7 +31,8 @@ import static com.tech.learningspace.Utils.CompletableFutueUtils.unwrapCompletio
 import static com.tech.learningspace.Utils.LearningSpaceThreadFactory.createThreadPoolExecutor;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
-public class AbstactDao {
+@Repository
+public class AbstractDao {
 
     protected static final Gson gson=new Gson();
     private final NamedParameterJdbcTemplate namedParameterJdbcTemplate;
@@ -42,7 +43,7 @@ public class AbstactDao {
     private static final Type mapType=new TypeToken<Map<String,String>>(){
     }.getType();
 
-    public AbstactDao(DataSource dataSource,int noOfThreads,String instanceOfClass) {
+    public AbstractDao(DataSource dataSource, int noOfThreads, String instanceOfClass) {
         this.namedParameterJdbcTemplate = new NamedParameterJdbcTemplate(dataSource);
         this.jdbcTemplate = new JdbcTemplate(dataSource);
         this.executorService = createThreadPoolExecutor(instanceOfClass,noOfThreads);
@@ -108,7 +109,7 @@ public class AbstactDao {
         return namedParameterJdbcTemplate.queryForObject(sql,param,rm);
     }
 
-    public <T>CompletionStage<Optional<T>>queryAnyRowAysnc (String sql,RowMapper<T>rm,Map<String,?>param){
+    public <T>CompletionStage<Optional<T>>queryAnyRowAsync (String sql,RowMapper<T>rm,Map<String,?>param){
         return queryAsync(sql,rm,param)
                 .thenApply(rows->rows.stream().findFirst())
                 .exceptionally(
@@ -130,8 +131,8 @@ public class AbstactDao {
         return supplyAsync(()->batchUpdate(sql,params),executorService);
     }
 
-    public int[] batchUpdate(String sql,Map<String,?>[] batchvalues){
-        return batchUpdate(sql, SqlParameterSourceUtils.createBatch(batchvalues));
+    public int[] batchUpdate(String sql,Map<String,?>[] batchValues){
+        return batchUpdate(sql, SqlParameterSourceUtils.createBatch(batchValues));
     }
 
     public int[] batchUpdate(String sql,SqlParameterSource[] batchArgs){
