@@ -1,4 +1,4 @@
-package com.tech.learningspace.consumers.Request;
+package com.tech.learningspace.client.request;
 
 
 import lombok.*;
@@ -9,6 +9,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 public class AddAuthProfileRequest {
+
+    private String userId;
     private String mobileNumber;
     private String email;
     private Long tenantId;

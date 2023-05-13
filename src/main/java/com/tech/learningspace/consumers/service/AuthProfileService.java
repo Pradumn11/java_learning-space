@@ -1,11 +1,12 @@
 package com.tech.learningspace.consumers.service;
 
-import com.tech.learningspace.Exception.AuthProfileException;
+import com.tech.learningspace.Exception.LearningSpaceException;
 import com.tech.learningspace.Utils.CompletableFutueUtils;
 import com.tech.learningspace.consumers.Request.AddAuthProfileRequest;
 import com.tech.learningspace.consumers.Response.AuthProfileResponse;
 import com.tech.learningspace.consumers.dao.AuthProfileDao;
 import com.tech.learningspace.consumers.dao.ConsumersDao;
+import com.tech.learningspace.enums.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -31,15 +32,19 @@ public class AuthProfileService {
                 authProfileRequest.getEmail(),authProfileRequest.getTenantId())
                 .thenCompose(authProfile->{
                    if(authProfile.isPresent()){
-                       throw new AuthProfileException("Error_01","Mobile/Email Already Registered",HttpStatus.BAD_REQUEST);
+                       throw new LearningSpaceException("Mobile/Email Already Registered", ErrorCode.DUPLICATE_DATA,HttpStatus.BAD_REQUEST);
                     }
-                   return authProfileDao.addAuthProfile(authProfileRequest);})
+                   return authProfileDao.addAuthProfile(authProfileRequest);
+                })
                 .thenCompose(__->authProfileDao.getProfileByMobileOrEmail(authProfileRequest.getMobileNumber(),
                         authProfileRequest.getEmail(),authProfileRequest.getTenantId())
                                 .thenApply(profile->profile.get()))
                 .exceptionally(t->{
                     t= CompletableFutueUtils.unwrapCompletionStateException(t);
-                   throw  new AuthProfileException("Error_01",t.getMessage(),HttpStatus.BAD_REQUEST);
+                    if (t instanceof LearningSpaceException){
+                        throw new LearningSpaceException(t.getMessage(),((LearningSpaceException)t).getErrorCode(),((LearningSpaceException)t).getStatus());
+                    }
+                   throw  new LearningSpaceException(t.getMessage(),ErrorCode.INTERNAL_SERVER_ERROR,HttpStatus.INTERNAL_SERVER_ERROR);
                 });
     }
 
@@ -48,12 +53,15 @@ public class AuthProfileService {
                 .thenApply(
                         authProfile->{
                             if(!authProfile.isPresent()){
-                                throw new AuthProfileException("Error_01","Mobile/Email not Registered",HttpStatus.BAD_REQUEST);
+                                throw new LearningSpaceException("Mobile/Email not Registered",ErrorCode.NOT_EXISTS,HttpStatus.NOT_FOUND);
                             }
                             return authProfile.get();})
                 .exceptionally(t->{
                     t= CompletableFutueUtils.unwrapCompletionStateException(t);
-                    throw  new AuthProfileException("Error_02",t.getMessage(),HttpStatus.BAD_REQUEST);
+                    if (t instanceof LearningSpaceException){
+                        throw new LearningSpaceException(t.getMessage(),((LearningSpaceException)t).getErrorCode(),((LearningSpaceException)t).getStatus());
+                    }
+                    throw  new LearningSpaceException(t.getMessage(),ErrorCode.INTERNAL_SERVER_ERROR,HttpStatus.INTERNAL_SERVER_ERROR);
                 });
 
     }

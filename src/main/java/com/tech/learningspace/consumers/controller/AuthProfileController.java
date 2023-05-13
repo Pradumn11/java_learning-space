@@ -20,7 +20,7 @@ public class AuthProfileController {
     }
 
     @PostMapping("/addProfile")
-    public CompletionStage<AuthProfileResponse>addProfile(AddAuthProfileRequest authProfileRequest){
+    public CompletionStage<AuthProfileResponse>addProfile(@RequestBody AddAuthProfileRequest authProfileRequest){
         return authProfileService.addProfile(authProfileRequest);
     }
 

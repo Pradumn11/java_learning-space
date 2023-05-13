@@ -4,6 +4,7 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import lombok.Getter;
 import org.postgresql.util.PGobject;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -31,7 +32,6 @@ import static com.tech.learningspace.Utils.CompletableFutueUtils.unwrapCompletio
 import static com.tech.learningspace.Utils.LearningSpaceThreadFactory.createThreadPoolExecutor;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 
-@Repository
 public class AbstractDao {
 
     protected static final Gson gson=new Gson();
@@ -91,7 +91,7 @@ public class AbstractDao {
 
     public <T>CompletionStage<Optional<T>> queryOptionalRowAsync(String sql,RowMapper<T>rm,Map<String,?>param){
         return querySingleRowAsync(sql,rm,param)
-                .thenApply(Optional::of)
+                .thenApply(Optional::ofNullable)
                 .exceptionally(t->{
                     t= unwrapCompletionStateException(t);
                     if (t instanceof EmptyResultDataAccessException){

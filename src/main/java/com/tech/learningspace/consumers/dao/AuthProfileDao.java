@@ -1,9 +1,14 @@
 package com.tech.learningspace.consumers.dao;
 
+import com.tech.learningspace.Exception.LearningSpaceException;
 import com.tech.learningspace.consumers.Request.AddAuthProfileRequest;
 import com.tech.learningspace.consumers.Response.AuthProfileResponse;
 import com.tech.learningspace.dao.AbstractDao;
+import com.tech.learningspace.enums.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
@@ -13,6 +18,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
+import static com.tech.learningspace.enums.Status.ACTIVE;
+
+@Repository
 public class AuthProfileDao extends AbstractDao {
 
 
@@ -22,16 +30,17 @@ public class AuthProfileDao extends AbstractDao {
     private final String USERID="user_id";
     private final String TENANT_ID="tenant_id";
     private final String ROLE="role";
+    private final String USERNAME="user_name";
     private final String PASSWORD="password";
-    private final String AUTH_PROFILE_TABLE="authProfile";
+    private final String AUTH_PROFILE_TABLE="authprofile";
 
     private final String ADD_PROFILE="INSERT INTO "+AUTH_PROFILE_TABLE+" (email,mobile_number,user_name,password,tenant_id,role,status) values "+
             "(:email,:mobile_number,:user_name,:password,:tenant_id,:role,:status)";
     private final String SELECT_PROFILE="SELECT * FROM "+AUTH_PROFILE_TABLE+" WHERE (mobile_number=:mobile_number or email=:email) and tenant_id=:tenant_id ";
 
     @Autowired
-    public AuthProfileDao(DataSource dataSource, int noOfThreads, String instanceOfClass) {
-        super(dataSource, noOfThreads, instanceOfClass);
+    public AuthProfileDao(DataSource dataSource, @Value("${db.pool.size}") int noOfThreads) {
+        super(dataSource, noOfThreads,AuthProfileDao.class.getSimpleName());
     }
 
     public CompletionStage<Integer>addAuthProfile(AddAuthProfileRequest authProfileRequest){
@@ -39,7 +48,7 @@ public class AuthProfileDao extends AbstractDao {
                 .thenApply(
                         num->{
                             if (num==0){
-                                throw new RuntimeException();
+                                throw new LearningSpaceException("Error creating authprofile", ErrorCode.DB_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
                             }
                             return num;
                         });
@@ -67,10 +76,11 @@ public class AuthProfileDao extends AbstractDao {
         Map<String,Object>param=new HashMap<>();
         param.put(MOBILE_NUMBER,authProfileRequest.getMobileNumber());
         param.put(EMAIL,authProfileRequest.getEmail());
+        param.put(USERNAME,authProfileRequest.getUserName());
         param.put(TENANT_ID,authProfileRequest.getTenantId());
         param.put(PASSWORD,authProfileRequest.getPassword());
         param.put(ROLE,authProfileRequest.getRole());
-        param.put(STATUS,"ACTIVE");
+        param.put(STATUS,ACTIVE.name());
 
         return param;
 

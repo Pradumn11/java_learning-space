@@ -1,9 +1,14 @@
 package com.tech.learningspace.consumers.dao;
 
+import com.tech.learningspace.Exception.LearningSpaceException;
 import com.tech.learningspace.consumers.Request.AddConsumerRequest;
 import com.tech.learningspace.consumers.Response.ConsumerResponse;
 import com.tech.learningspace.dao.AbstractDao;
+import com.tech.learningspace.enums.ErrorCode;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
+import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.sql.ResultSet;
@@ -13,6 +18,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.CompletionStage;
 
+import static com.tech.learningspace.enums.Status.ACTIVE;
+
+@Repository
 public class ConsumersDao extends AbstractDao {
 
     private final String CONSUMER_TABLE="consumers";
@@ -37,22 +45,22 @@ public class ConsumersDao extends AbstractDao {
             +STATE+COMMA
             +CITY+COMMA
             +TENANT_ID+COMMA
-            +STATUS+COMMA
-            +") values (:first_name,:last_name,:user_id,:mobile_number,:email,:address,:state,:city,:tenant_id,status)";
+            +STATUS
+            +") values (:first_name,:last_name,:user_id,:mobile_number,:email,:address,:state,:city,:tenant_id,:status)";
 
     private final String SELECT_CONSUMER="SELECT * FROM "+CONSUMER_TABLE+" WHERE user_id=:user_id and tenant_id=:tenant_id";
 
     @Autowired
-    public ConsumersDao(DataSource dataSource, int noOfThreads, String instanceOfClass) {
-        super(dataSource, noOfThreads, instanceOfClass);
+    public ConsumersDao(DataSource dataSource, @Value("${db.pool.size}") int noOfThreads) {
+        super(dataSource, noOfThreads, ConsumersDao.class.getSimpleName());
     }
 
-    public CompletionStage<Integer>addConsumer(AddConsumerRequest consumerRequest,Long userId){
+    public CompletionStage<Integer>addConsumer(AddConsumerRequest consumerRequest, Long userId){
         return updateAsync(INSERT_CONSUMER,getAddConsumerParams(consumerRequest,userId))
                 .thenApply(
                         num->{
                          if (num==0){
-                             throw new RuntimeException();
+                             throw new LearningSpaceException("Error creating Consumer", ErrorCode.INTERNAL_SERVER_ERROR, HttpStatus.INTERNAL_SERVER_ERROR);
                          }
                          return num;
                         });
@@ -91,6 +99,7 @@ public class ConsumersDao extends AbstractDao {
         param.put(EMAIL,consumerRequest.getEmail());
         param.put(TENANT_ID,consumerRequest.getTenantId());
         param.put(USERID,userId);
+        param.put(STATUS,ACTIVE.name());
         return param;
 
     }

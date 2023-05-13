@@ -1,4 +1,4 @@
-package com.tech.learningspace.consumers.Response;
+package com.tech.learningspace.client.response;
 
 
 import lombok.*;

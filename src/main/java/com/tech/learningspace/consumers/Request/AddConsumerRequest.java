@@ -2,12 +2,16 @@ package com.tech.learningspace.consumers.Request;
 
 import lombok.*;
 
+import java.io.Serializable;
+
 @Builder
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
-public class AddConsumerRequest {
+public class AddConsumerRequest implements Serializable {
+
+    private String userId;
     private String firstName;
     private String lastName;
     private String city;
@@ -16,4 +20,5 @@ public class AddConsumerRequest {
     private String mobileNumber;
     private String email;
     private Long tenantId;
+
 }
