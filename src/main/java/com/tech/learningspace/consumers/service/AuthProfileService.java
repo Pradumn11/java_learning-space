@@ -1,7 +1,7 @@
 package com.tech.learningspace.consumers.service;
 
 import com.tech.learningspace.Exception.LearningSpaceException;
-import com.tech.learningspace.Utils.CompletableFutueUtils;
+import com.tech.learningspace.Utils.CompletableFutureUtils;
 import com.tech.learningspace.consumers.Request.AddAuthProfileRequest;
 import com.tech.learningspace.consumers.Response.AuthProfileResponse;
 import com.tech.learningspace.consumers.dao.AuthProfileDao;
@@ -40,7 +40,7 @@ public class AuthProfileService {
                         authProfileRequest.getEmail(),authProfileRequest.getTenantId())
                                 .thenApply(profile->profile.get()))
                 .exceptionally(t->{
-                    t= CompletableFutueUtils.unwrapCompletionStateException(t);
+                    t= CompletableFutureUtils.unwrapCompletionStateException(t);
                     if (t instanceof LearningSpaceException){
                         throw new LearningSpaceException(t.getMessage(),((LearningSpaceException)t).getErrorCode(),((LearningSpaceException)t).getStatus());
                     }
@@ -57,7 +57,7 @@ public class AuthProfileService {
                             }
                             return authProfile.get();})
                 .exceptionally(t->{
-                    t= CompletableFutueUtils.unwrapCompletionStateException(t);
+                    t= CompletableFutureUtils.unwrapCompletionStateException(t);
                     if (t instanceof LearningSpaceException){
                         throw new LearningSpaceException(t.getMessage(),((LearningSpaceException)t).getErrorCode(),((LearningSpaceException)t).getStatus());
                     }

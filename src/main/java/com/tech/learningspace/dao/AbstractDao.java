@@ -4,7 +4,6 @@ import com.google.common.reflect.TypeToken;
 import com.google.gson.Gson;
 import lombok.Getter;
 import org.postgresql.util.PGobject;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.ResultSetExtractor;
@@ -14,7 +13,6 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.core.namedparam.SqlParameterSourceUtils;
 import org.springframework.jdbc.support.KeyHolder;
-import org.springframework.stereotype.Repository;
 
 import javax.sql.DataSource;
 import java.lang.reflect.Type;
@@ -28,7 +26,7 @@ import java.util.concurrent.CompletionStage;
 import java.util.concurrent.ExecutorService;
 
 import static com.google.common.base.MoreObjects.firstNonNull;
-import static com.tech.learningspace.Utils.CompletableFutueUtils.unwrapCompletionStateException;
+import static com.tech.learningspace.Utils.CompletableFutureUtils.unwrapCompletionStateException;
 import static com.tech.learningspace.Utils.LearningSpaceThreadFactory.createThreadPoolExecutor;
 import static java.util.concurrent.CompletableFuture.supplyAsync;
 

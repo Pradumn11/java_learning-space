@@ -16,19 +16,19 @@ import java.util.concurrent.CompletionStage;
 
 
 @Repository
-public class EsClient {
+public class http3EsClient {
 
    private final HttpClientHelper httpClientHelper;
 
-   private static final String CONTENT_TYPE="Content-Type";
-   private static final String APPLICATION_JSON="application/json";
+   public static final String CONTENT_TYPE="Content-Type";
+   public static final String APPLICATION_JSON="application/json";
    private final ImmutableMap<String,String>headers;
 
-   private final String BASEURL="http://localhost:8082";
+   public static final String BASEURL="http://localhost:8082";
    private Gson gson=new Gson();
    private final int connectionTimeout;
 
-    public EsClient(HttpClientHelper httpClientHelper) {
+    public http3EsClient(HttpClientHelper httpClientHelper) {
         this.httpClientHelper = httpClientHelper;
         this.headers = getHeaders();
         this.connectionTimeout = 30;
