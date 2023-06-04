@@ -1,9 +1,15 @@
 package com.tech.learningspace.Utils;
 
+import com.tech.learningspace.Exception.LearningSpaceException;
+import com.tech.learningspace.enums.ErrorCode;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.util.concurrent.ListenableFuture;
 import org.springframework.util.concurrent.ListenableFutureCallback;
 import org.springframework.web.context.request.async.DeferredResult;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CompletionException;
@@ -88,5 +94,48 @@ public class CompletableFutureUtils {
             }
         });
         return completableFuture;
+    }
+
+    public static  <T>CompletableFuture<T> getCompletableFuture(Call call){
+    CompletableFuture<T> cf=new CompletableFuture<>();
+    call.enqueue(convertRetrofitToCallback(cf));
+    return cf;
+    }
+
+    private static <T>Callback<T>convertRetrofitToCallback(final CompletableFuture<T> cf){
+
+        return new Callback<T>() {
+            @Override
+            public void onResponse(Call<T> call, Response<T> response) {
+                int statusCode=response.code();
+                if (response.isSuccessful()){
+                    cf.complete(response.body());
+                }else {
+                    try {
+                        String errorBody=response.errorBody().toString();
+                        doErrorHandling(statusCode,cf,errorBody);
+                    }catch (Exception ex){
+                        cf.completeExceptionally(new LearningSpaceException("Failed to Read Response",ErrorCode.INTERNAL_SERVER_ERROR,HttpStatus.INTERNAL_SERVER_ERROR));
+                    }
+
+                }
+            }
+
+            @Override
+            public void onFailure(Call<T> call, Throwable throwable) {
+            cf.completeExceptionally(new LearningSpaceException("Connection Failure",ErrorCode.CONNECTION_ERROR,HttpStatus.INTERNAL_SERVER_ERROR));
+            }
+        };
+    }
+
+    private static <T> void doErrorHandling(int statusCode,CompletableFuture<T>cf,String errorBody){
+
+        if(statusCode>=502 && statusCode<=504){
+            cf.completeExceptionally(new LearningSpaceException("ConnectionException", ErrorCode.CONNECTION_ERROR, HttpStatus.INTERNAL_SERVER_ERROR));
+        } else if (statusCode==401) {
+            cf.completeExceptionally(new LearningSpaceException("UnAuthorized",ErrorCode.UNAUTHORIZED,HttpStatus.UNAUTHORIZED));
+        }else {
+            cf.completeExceptionally(new LearningSpaceException(errorBody,ErrorCode.INTERNAL_SERVER_ERROR,HttpStatus.INTERNAL_SERVER_ERROR));
+        }
     }
 }
